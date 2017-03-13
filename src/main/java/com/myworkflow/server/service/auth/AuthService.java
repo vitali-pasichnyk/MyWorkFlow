@@ -1,5 +1,6 @@
 package com.myworkflow.server.service.auth;
 
+import com.myworkflow.server.entity.auth.RealTokenEntity;
 import com.myworkflow.server.entity.auth.TempTokenEntity;
 
 /**
@@ -11,6 +12,10 @@ public interface AuthService {
 
     TempTokenEntity createTempToken();
 
-    boolean verifyTempToken(TempTokenEntity tempTokenEntity);
+    boolean isTokenValidByTime(TempTokenEntity tempTokenEntity);
+
+    RealTokenEntity createAndSaveRealToken(long userId);
+
+    Long getUserIdFromRealToken(RealTokenEntity realTokenEntity);
 
 }

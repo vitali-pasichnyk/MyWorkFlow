@@ -1,5 +1,7 @@
 package com.myworkflow.server.entity.auth;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.Objects;
 
 /**
@@ -9,6 +11,7 @@ import java.util.Objects;
  */
 public class TempTokenEntity {
 
+    @JsonProperty("authtoken")
     private String tokenBody;
 
     private long localServerTime;
