@@ -54,18 +54,21 @@ public class AuthController {
     @RequestMapping(value = "/signup", produces = "application/json", method = RequestMethod.POST)
     public ResponseEntity<?> signUp(HttpServletRequest request, @RequestBody final SignUpRequest signUpRequest) {
 
-        String requestToken = signUpRequest.getAuthToken();
-
         HttpSession httpSession = request.getSession();
         TempTokenEntity sessionToken = (TempTokenEntity) httpSession.getAttribute(sessionTokenName);
 
-        if (sessionToken != null && sessionToken.getTokenBody() != null) {
+        if (sessionToken != null && sessionToken.getTokenBody() != null
+                && signUpRequest.getUserName() != null && signUpRequest.getUserName().length() > 0
+                && signUpRequest.getPassword() != null && signUpRequest.getPassword() != null)  {
+
+            String requestToken = signUpRequest.getAuthToken();
 
             //verify request token with token from session
             if (sessionToken.getTokenBody().equals(requestToken) && authService.isTokenValidByTime(sessionToken)) {
 
                 //check user name existence
-                if(userService.findByLogin(signUpRequest.getUserName()) != null){
+                if (userService.findByLogin(signUpRequest.getUserName()) != null) {
+                    //409
                     return new ResponseEntity<>(new MessageResponse(HttpStatus.CONFLICT.toString(), "user name exist"), HttpStatus.CONFLICT);
                 }
 
@@ -80,10 +83,11 @@ public class AuthController {
                 return new ResponseEntity<>(signUpResponse, HttpStatus.OK);
 
             } else {
+                //401
                 return new ResponseEntity<>(new MessageResponse(HttpStatus.UNAUTHORIZED.toString(), "bad auth token"), HttpStatus.UNAUTHORIZED);
             }
         }
-
+        //400
         return new ResponseEntity<>(new MessageResponse(HttpStatus.BAD_REQUEST.toString(), "bad request"), HttpStatus.BAD_REQUEST);
     }
 
@@ -102,14 +106,15 @@ public class AuthController {
 
                 //check user existence
                 UserEntity userEntity = userService.findByLoginAndPassword(signUpRequest.getUserName(), signUpRequest.getPassword());
-                if(userEntity != null){
+                if (userEntity != null) {
 
                     //create and store real token
                     RealTokenEntity realTokenEntity = authService.createAndSaveRealToken(userEntity.getUserId());
 
                     //return real token and 200 code
                     SignInResponse signIpResponse = new SignInResponse(HttpStatus.OK.toString(), realTokenEntity.getRealTokenBody());
-                    return new ResponseEntity<>(signIpResponse, HttpStatus.OK);                }
+                    return new ResponseEntity<>(signIpResponse, HttpStatus.OK);
+                }
 
             } else {
                 return new ResponseEntity<>(new MessageResponse(HttpStatus.UNAUTHORIZED.toString(), "bad auth token"), HttpStatus.UNAUTHORIZED);
